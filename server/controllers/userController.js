@@ -171,6 +171,62 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
+export const updateSellerProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {name,experience,companyOrCollege}=req.body;
+    const profilePic = req.file;
+
+    if (!profilePic) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile picture is required",
+      });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.photoUrl) {
+      const publicId = user.photoUrl.split("/").pop().split(".")[0];
+      await deleteMediaFromCloudinary(publicId);
+    }
+
+    const cloudResponse = await uploadMedia(profilePic.path);
+    if (!cloudResponse || !cloudResponse.secure_url) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload profile picture",
+      });
+    }
+    const photoUrl = cloudResponse.secure_url;
+
+    const updatedData = {
+      name: name || user.name,
+      experience: experience || user.experience,
+      companyOrCollege: companyOrCollege || user.companyOrCollege,
+      photoUrl,
+    };
+    
+    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
+      new: true,
+    }).select("-password");
+
+    return res.status(200).json({
+      success: true,
+      message: "Seller Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update profile",
+      error: error.message,
+    });
+  }
+};
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();

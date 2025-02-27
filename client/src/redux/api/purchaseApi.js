@@ -16,6 +16,12 @@ export const purchaseApi = createApi({
         body: { projectId },
       }),
     }),
+    createCheckoutSessionForCart: builder.mutation({
+      query: () => ({
+        url: "/checkout/create-checkout-session-cart",
+        method: "POST",
+      }),
+    }),
     getProjectDetailWithStatus: builder.query({
       query: (projectId) => ({
         url: `/project/${projectId}/detail-with-status`,
@@ -33,6 +39,7 @@ export const purchaseApi = createApi({
 
 export const {
   useCreateCheckoutSessionMutation,
+  useCreateCheckoutSessionForCartMutation,
   useGetProjectDetailWithStatusQuery,
   useGetPurchasedProjectQuery,
 } = purchaseApi;

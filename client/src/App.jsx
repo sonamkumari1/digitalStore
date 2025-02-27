@@ -22,6 +22,7 @@ import CartPage from "./pages/user/CartPage";
 import LikesPage from "./pages/user/LikesPage";
 import FirstPage from "./pages/seller/FirstPage";
 import SellerProfile from "./pages/user/SellerProfile";
+import Explore from "./pages/user/Explore";
 
 
 const appRouter = createBrowserRouter([
@@ -77,7 +78,7 @@ const appRouter = createBrowserRouter([
         element: <EditProject/>
       },
       {
-        path: "editSeller-profile/:id",
+        path: "editSeller-profile",
         element: <EditSellerProfile />
       },
       {
@@ -127,6 +128,10 @@ const appRouter = createBrowserRouter([
       {
         path:"likesPage",
         element:<LikesPage/>
+      },
+      {
+        path:"explore",
+        element:<Explore/>
       }
     ],
   }

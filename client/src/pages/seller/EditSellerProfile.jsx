@@ -18,9 +18,9 @@ import toast from "react-hot-toast";
 
 function EditSellerProfile() {
   const [name, setName] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState("");
-  const [price, setPrice] = useState(0);
-  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [experience, setExperience] = useState(0);
+  const [companyOrCollege, setCompanyOrCollege] = useState("");
 
   const { data, isLoading, refetch } = useLoadUserQuery();
   const [
@@ -34,12 +34,11 @@ function EditSellerProfile() {
     },
   ] = useUpdateUserProfileMutation();
 
-  // Initialize form data with user data when it's loaded
   useEffect(() => {
-    if (data && data.user) {
+    if (data?.user) {
       setName(data.user.name || "");
-      setPrice(data.user.price || 0);
-      setDiscountPercentage(data.user.discountPercentage || 0);
+      setExperience(data.user.experience || 0);
+      setCompanyOrCollege(data.user.companyOrCollege || "");
     }
   }, [data]);
 
@@ -48,12 +47,14 @@ function EditSellerProfile() {
     if (file) setProfilePhoto(file);
   };
 
+
   const updateUserHandler = async () => {
     const formData = new FormData();
     formData.append("name", name);
+   
+    formData.append("experience", experience);
+    formData.append("companyOrCollege", companyOrCollege);
     formData.append("profilePhoto", profilePhoto);
-    formData.append("price", price);
-    formData.append("discountPercentage", discountPercentage);
     await updateUser(formData);
   };
 
@@ -64,19 +65,16 @@ function EditSellerProfile() {
   useEffect(() => {
     if (isSuccess) {
       refetch();
-      toast.success(data.message || "Profile updated.");
+      toast.success(updateUserData?.message || "Profile updated successfully.");
     }
     if (isError) {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(error?.message || "Failed to update profile.");
     }
-  }, [error, updateUserData, isSuccess, isError]);
+  }, [updateUserData, isSuccess, isError, error, refetch]);
 
   if (isLoading) return <h1>Profile Loading...</h1>;
 
-  const user = data && data.user;
-
-  // Calculate discounted price
-  const discountedPrice = price - (price * discountPercentage / 100);
+  const user = data?.user;
 
   return (
     <div>
@@ -87,49 +85,49 @@ function EditSellerProfile() {
             <Avatar className="h-24 w-24 md:h-32 md:w-32 mb-4">
               <AvatarImage
                 src={user?.photoUrl || "https://github.com/shadcn.png"}
-                alt="@shadcn"
+                alt="User Profile"
               />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
           </div>
           <div>
             <div className="mb-2">
-              <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
+              <h1 className="font-semibold text-gray-900 dark:text-gray-100">
                 Name:
                 <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                  {user.name}
-                </span>
-              </h1>
-            </div>
-            <div className="mb-2">
-              <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
-                Email:
-                <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                  {user.email}
-                </span>
-              </h1>
-            </div>
-            <div className="mb-2">
-              <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
-                Role:
-                <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                  {user.role.toUpperCase()}
+                  {user?.name}
                 </span>
               </h1>
             </div>
             <div className="mb-2">
               <h1 className="font-semibold text-gray-900 dark:text-gray-100">
-                Price:
+                Email:
                 <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                  {user.discountPercentage > 0 ? (
-                    <span className="flex items-center gap-2">
-                      <span className="text-green-500">{user.discountPercentage}% off</span>
-                      <span className="line-through">₹{user.price}</span>
-                      <span>₹{(user.price - (user.price * user.discountPercentage / 100)).toFixed(2)}</span>
-                    </span>
-                  ) : (
-                    <span>₹{user.price || 0}</span>
-                  )}
+                  {user?.email}
+                </span>
+              </h1>
+            </div>
+            <div className="mb-2">
+              <h1 className="font-semibold text-gray-900 dark:text-gray-100">
+                Role:
+                <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
+                  {user?.role?.toUpperCase()}
+                </span>
+              </h1>
+            </div>
+            <div className="mb-2">
+              <h1 className="font-semibold text-gray-900 dark:text-gray-100">
+                Experience:
+                <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
+                  {user?.experience}
+                </span>
+              </h1>
+            </div>
+            <div className="mb-2">
+              <h1 className="font-semibold text-gray-900 dark:text-gray-100">
+                Company/College:
+                <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
+                  {user?.companyOrCollege}
                 </span>
               </h1>
             </div>
@@ -160,59 +158,37 @@ function EditSellerProfile() {
                   </div>
 
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label>Price</Label>
+                    <Label>Experience</Label>
                     <Input
                       type="number"
-                      value={price}
-                      onChange={(e) => setPrice(Number(e.target.value))}
-                      placeholder="Enter price"
+                      value={experience}
+                      onChange={(e) => setExperience(Number(e.target.value))}
+                      placeholder="Experience"
                       className="col-span-3"
-                      min="0"
-                      step="0.01"
                     />
                   </div>
 
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label>Discount %</Label>
+                    <Label>Company/College</Label>
                     <Input
-                      type="number"
-                      value={discountPercentage}
-                      onChange={(e) => setDiscountPercentage(Number(e.target.value))}
-                      placeholder="Enter discount"
+                      type="text"
+                      value={companyOrCollege}
+                      onChange={(e) => setCompanyOrCollege(e.target.value)}
+                      placeholder="Company/College"
                       className="col-span-3"
-                      min="0"
-                      max="100"
-                      step="1"
                     />
                   </div>
-
-                  {/* Display calculated price */}
-                  {discountPercentage > 0 && (
-                    <div className="col-span-4 bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
-                      <div className="flex items-center gap-2 justify-end">
-                        <span className="text-green-500 text-sm">
-                          {discountPercentage}% off
-                        </span>
-                        <span className="text-sm line-through text-gray-400">
-                          ₹{price}
-                        </span>
-                        <span className="font-bold text-sm">
-                          ₹{discountedPrice.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
 
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label>Profile Photo</Label>
-                    <Input
-                      onChange={onChangeHandler}
-                      type="file"
-                      accept="image/*"
-                      className="col-span-3"
-                    />
-                  </div>
-                </div>
+                <Label>Profile Photo</Label>
+                <Input
+                  onChange={onChangeHandler}
+                  type="file"
+                  accept="image/*"
+                  className="col-span-3"
+                />
+              </div>
+            </div>
                 <DialogFooter>
                   <Button
                     disabled={updateUserIsLoading}

@@ -4,11 +4,14 @@ import {
   useRemoveCartItemMutation,
   useAddToCartMutation,
 } from "@/redux/api/cartApi";
+import { useCreateCheckoutSessionForCartMutation } from "@/redux/api/purchaseApi"; // ✅ Import checkout API
 
 const CartPage = () => {
   const { data, isLoading, isError, refetch } = useAllCartsQuery();
   const [removeCartItem] = useRemoveCartItemMutation();
   const [addToCart] = useAddToCartMutation();
+  const [createCheckoutSessionForCart, { isLoading: isCheckoutLoading }] =
+    useCreateCheckoutSessionForCartMutation(); // ✅ Checkout session API
 
   // ✅ Store cart items in local state for optimistic updates
   const [cartItems, setCartItems] = useState([]);
@@ -38,23 +41,17 @@ const CartPage = () => {
   // ✅ Calculate total price after discount
   const totalPrice = cartItems.reduce((acc, item) => {
     const finalPrice =
-      item.project?.price -
-      (item.project?.price * item.project?.discountPercentage) / 100;
+      item.project?.price - (item.project?.price * item.project?.discountPercentage) / 100;
     return acc + (finalPrice || 0);
   }, 0);
 
   // ✅ Optimistic UI update when removing an item
   const handleRemove = async (projectId) => {
     try {
-      // ✅ Optimistically update UI before API call
       setCartItems((prevItems) =>
         prevItems.filter((item) => item.project?._id !== projectId)
       );
-
-      // ✅ API Call
       await removeCartItem(projectId).unwrap();
-
-      // ✅ Ensure cart is up to date
       refetch();
     } catch (error) {
       console.error("Error removing item:", error);
@@ -64,7 +61,6 @@ const CartPage = () => {
   // ✅ Optimistic UI update when adding an item
   const handleAddToCart = async (projectId, quantity) => {
     try {
-      // ✅ Optimistically update UI before API call
       setCartItems((prevItems) => [
         ...prevItems,
         {
@@ -72,14 +68,22 @@ const CartPage = () => {
           quantity,
         },
       ]);
-
-      // ✅ API Call
       await addToCart({ projectId, quantity }).unwrap();
-
-      // ✅ Ensure cart is up to date
       refetch();
     } catch (error) {
       console.error("Error adding item:", error);
+    }
+  };
+
+  // ✅ Handle Checkout Process
+  const handleCheckout = async () => {
+    try {
+      const { data } = await createCheckoutSessionForCart();
+      if (data?.url) {
+        window.location.href = data.url; // ✅ Redirect to Stripe checkout
+      }
+    } catch (error) {
+      console.error("Checkout failed:", error);
     }
   };
 
@@ -95,14 +99,12 @@ const CartPage = () => {
               key={item.project?._id}
               className="flex items-center mb-4 p-4 border-b border-gray-700"
             >
-              {/* ✅ Image */}
               <img
                 src={item.project?.thumbnail}
                 alt={item.project?.title}
                 className="w-24 h-24 md:w-32 md:h-32 object-contain rounded"
               />
 
-              {/* ✅ Details */}
               <div className="ml-4 flex-1">
                 <h3 className="text-lg md:text-xl font-semibold">
                   {item.project?.title}
@@ -118,14 +120,12 @@ const CartPage = () => {
                     ₹
                     {(
                       item.project?.price -
-                      (item.project?.price * item.project?.discountPercentage) /
-                        100
+                      (item.project?.price * item.project?.discountPercentage) / 100
                     ).toFixed(2)}
                   </span>
                 </div>
               </div>
 
-              {/* ✅ Remove Button */}
               <button
                 className="bg-red-500 text-white px-4 py-2 rounded-full w-10 h-10 flex items-center justify-center text-xl"
                 onClick={() => handleRemove(item.project?._id)}
@@ -142,8 +142,12 @@ const CartPage = () => {
           <p className="text-lg font-semibold text-center">
             ₹{totalPrice.toFixed(2)}
           </p>
-          <button className="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-600">
-            Proceed to Checkout
+          <button
+            className="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-600"
+            onClick={handleCheckout}
+            disabled={isCheckoutLoading}
+          >
+            {isCheckoutLoading ? "Processing..." : "Proceed to Checkout"}
           </button>
         </div>
       </div>

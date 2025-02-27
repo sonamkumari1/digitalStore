@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import Project from "../model/projectModel.js";
 import ProjectPurchase from "../model/projectPurchase.js";
+import Cart from "../model/cartModel.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -57,6 +58,79 @@ export const createCheckoutSession = async (req, res) => {
   }
 };
 
+export const createCheckoutSessionForCart = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Fetch user's cart (Fixed query: changed `userId` to `user`)
+    const userCart = await Cart.findOne({ user: userId }).populate(
+      "cartItems.project"
+    );
+
+    if (!userCart || userCart.cartItems.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
+    // Prepare line items for Stripe
+    const lineItems = userCart.cartItems
+      .map((item) => {
+        if (!item.project) {
+          console.warn(`Skipping item with missing project reference:`, item);
+          return null;
+        }
+
+        const finalPrice =
+          item.project.price -
+          (item.project.price * item.project.discountPercentage) / 100;
+
+        return {
+          price_data: {
+            currency: "inr",
+            product_data: {
+              name: item.project.title,
+            },
+            unit_amount: Math.round(finalPrice * 100), // Convert to paisa
+          },
+          quantity: item.quantity,
+        };
+      })
+      .filter(Boolean); // Remove null values if any item has missing project data
+
+    if (lineItems.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Cart items are invalid" });
+    }
+
+    // Create checkout session with all cart items
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      success_url: `http://localhost:5173/success`,
+      cancel_url: `http://localhost:5173/cart`,
+      metadata: { userId },
+      shipping_address_collection: { allowed_countries: ["IN"] },
+    });
+
+    // Save purchase records
+    const purchases = userCart.cartItems.map((item) => ({
+      projectId: item.project._id,
+      userId,
+      amount: item.project.price,
+      status: "pending",
+      paymentId: session.id,
+    }));
+
+    await ProjectPurchase.insertMany(purchases);
+
+    return res.status(200).json({ success: true, url: session.url });
+  } catch (error) {
+    console.error("Stripe Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 export const stripeWebhook = async (req, res) => {
   let event;
   try {
@@ -76,7 +150,9 @@ export const stripeWebhook = async (req, res) => {
   if (event.type === "checkout.session.completed") {
     try {
       const session = event.data.object;
-      const purchase = await ProjectPurchase.findOne({ paymentId: session.id }).populate("projectId");
+      const purchase = await ProjectPurchase.findOne({
+        paymentId: session.id,
+      }).populate("projectId");
 
       if (!purchase) {
         return res.status(404).json({ message: "Purchase not found" });
@@ -113,7 +189,9 @@ export const getProjectDetailWithPurchaseStatus = async (req, res) => {
 
 export const getAllPurchasedProjects = async (_, res) => {
   try {
-    const purchasedProjects = await ProjectPurchase.find({ status: "completed" }).populate("projectId");
+    const purchasedProjects = await ProjectPurchase.find({
+      status: "completed",
+    }).populate("projectId");
     return res.status(200).json({ purchasedProjects });
   } catch (error) {
     console.error(error);

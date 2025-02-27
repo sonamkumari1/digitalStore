@@ -76,7 +76,7 @@ function FirstPage() {
                   {userRole === "seller" && (
                     <>
                       <DropdownMenuItem>
-                        <Link to="/seller/profile">Profile</Link>
+                        <Link to="/seller/editSeller-profile">Profile</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Link to="/seller/dashboard">Dashboard</Link>

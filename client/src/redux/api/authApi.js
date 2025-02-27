@@ -77,6 +77,14 @@ export const authApi = createApi({
         credentials: "include",
       }),
     }),
+    updateSellerProfile: builder.mutation({
+      query: (formData) => ({
+        url: "seller-profile/update", // Endpoint for updating user profile
+        method: "PUT",
+        body: formData,
+        credentials: "include",
+      }),
+    }),
     getAllUsers: builder.query({
       query: () => ({
         url: "all",
@@ -96,6 +104,7 @@ export const {
   useRegisterMutation,
   useLoginUserMutation,
   useUpdateUserProfileMutation,
+  useUpdateSellerProfileMutation,
   useLogoutUserMutation,
   useLoadUserQuery,
   useGetAllUsersQuery,

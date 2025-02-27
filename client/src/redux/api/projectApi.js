@@ -101,6 +101,12 @@ export const projectApi = createApi({
       }),
     }),
     
+    getProjectByCreator: builder.query({
+      query: (creatorId) => ({
+        url: `/creator/${creatorId}`,
+        method: "GET",
+      }),
+    }),
 
   }),
 });
@@ -115,4 +121,6 @@ export const {
   useUpdateProjectMutation,
   useDeleteProjectMutation,
   useSearchProjectsQuery,
+  useAddToCartMutation,
+  useGetProjectByCreatorQuery,
 } = projectApi;

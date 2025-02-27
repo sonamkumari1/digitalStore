@@ -73,7 +73,7 @@ const Navbar = () => {
       : [
           { name: "Home", link: "/" },
           { name: "Store", link: "/store" },
-          { name: "Explore", link: "/explore" },
+          { name: "Explore", link: "/user/explore" },
         ];
 
   return (

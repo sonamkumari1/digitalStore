@@ -6,6 +6,7 @@ import {
   getUserProfile,
   updateUserProfile,
   getAllUsers,
+  updateSellerProfile,
 } from "../controllers/userController.js";
 
 import { isAuthenticated } from "../middlewares/isAuthenticated.js";
@@ -23,6 +24,9 @@ router
   .route("/profile/update")
   .put(isAuthenticated, upload.single("profilePhoto"), updateUserProfile);
 
+  router
+  .route("/seller-profile/update")
+  .put(isAuthenticated, upload.single("profilePhoto"), updateSellerProfile);
 
 
 export default router;

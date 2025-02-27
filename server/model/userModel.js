@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  experience: {
+    type: Number,
+    default: "",
+  },
+  companyOrCollege: {
+    type: String,
+    default: "",
+  },
   createdAt: {
     type: Date,
     default: Date.now,

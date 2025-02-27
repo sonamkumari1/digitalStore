@@ -19,8 +19,8 @@ function Hero() {
           </p>
 
           <div className="flex justify-center md:justify-start gap-5 mt-6 md:mt-8">
-            <Button className="bg-yellow-500" onClick={() => navigate('/explore')}>Explore</Button>
-            <Button className="bg-red-600" onClick={() => navigate('/dashboard')}>Sell</Button>
+            <Button className="bg-yellow-500" onClick={() => navigate('/user/explore')}>Explore</Button>
+            <Button className="bg-red-600" onClick={() => navigate('/user/login')}>Sell</Button>
           </div>
         </div>
 
