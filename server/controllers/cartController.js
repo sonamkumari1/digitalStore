@@ -1,4 +1,3 @@
-import e from "express";
 import Cart from "../model/cartModel.js";
 import Project from "../model/projectModel.js";
 

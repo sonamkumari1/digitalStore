@@ -1,6 +1,6 @@
 import User from "../model/userModel.js";
 import sendWelcomeEmail from "../config/mailer.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs"
 import { generateToken } from "../utils/generateToken.js";
 import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
 
