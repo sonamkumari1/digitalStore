@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const CART_API = "http://localhost:8010/api/cart";
+const CART_API = "https://digitalstore-p5is.onrender.com/api/cart";
 
 export const cartApi = createApi({
   reducerPath: "cartApi",

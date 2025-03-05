@@ -20,7 +20,7 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://localhost:8010/api/users/all");
+        const response = await axios.get("https://digitalstore-p5is.onrender.com/api/users/all");
         const userData = response.data.users || []; // Correctly access 'users'
         setUsers(userData);
         setLoading(false);
